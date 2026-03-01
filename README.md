@@ -1,18 +1,38 @@
 # C.H. Robinson Country Route Finder
 
-A React web application that calculates the shortest overland truck route from the **USA** to any country in North and Central America using Breadth-First Search (BFS).
+An app that finds the shortest route of countries a truck driver must travel through from the USA to a destination country. Built for C.H. Robinson to help determine what customs documentation is needed for North American shipments.
+
+**Live URL:** https://orange-tree-0bc10780f2.azurestaticapps.net
 
 ---
 
-## Tech Stack
+## Requirements
 
-| Layer      | Choice                          |
-|------------|---------------------------------|
-| Framework  | React 19 (Create React App)     |
-| Language   | JavaScript (ES2020+)            |
-| Styling    | Plain CSS (custom properties)   |
-| Algorithm  | BFS (breadth-first search)      |
-| Testing    | Jest + React Testing Library    |
+- User enters a 3-letter country code
+- App displays the ordered list of countries from USA to the destination
+- Valid codes: `CAN`, `USA`, `MEX`, `BLZ`, `GTM`, `SLV`, `HND`, `NIC`, `CRI`, `PAN` (not case-sensitive)
+
+---
+
+## How to Use
+
+1. Visit the [live URL](https://orange-tree-0bc10780f2.azurestaticapps.net)
+2. Enter a 3-letter country code into the input field
+3. The route list will display on screen
+
+---
+
+## Responses
+
+**Success** — displays the ordered route from USA to destination:
+```
+USA → MEX → GTM → HND → NIC → CRI → PAN
+```
+
+**Failure** — displays a clear error message if an invalid code is entered:
+```
+"XYZ" is not a recognised country code. Valid codes: USA, CAN, MEX, ...
+```
 
 ---
 
@@ -32,59 +52,46 @@ npm install
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. The page reloads automatically on file changes.
-
-### Other scripts
+Open [http://localhost:3000](http://localhost:3000). The page reloads automatically on file changes.
 
 ```bash
-npm test    # Run tests in watch mode
-npm run build  # Production build to /build
+npm test        # Run the test suite
+npm run build   # Production build to /build
 ```
 
 ---
 
-## How BFS Works in This App
+## How BFS Works
 
-BFS guarantees the **shortest path** in an unweighted, undirected graph by exploring nodes layer by layer—all countries reachable in 1 crossing before any reachable in 2, and so on.
+BFS (Breadth-First Search) guarantees the **shortest path** in an unweighted graph by exploring all nodes at the current distance before moving one step further. The first time the destination is reached it is always via the fewest possible border crossings.
 
-### Step-by-step
+**Steps:**
 
-1. **Initialise** the queue with a single path: `[["USA"]]`.
-2. **Dequeue** the first path and inspect its last node (the current country).
-3. **Goal check** — if the current country is the destination, return the path immediately. Because BFS processes nodes in order of distance, the first match is always the shortest route.
-4. **Expand** — for each unvisited neighbour of the current country, create a new path by appending the neighbour and enqueue it.
-5. **Mark visited** — a `Set` prevents revisiting countries, avoiding cycles.
-6. **Repeat** from step 2 until the destination is found or the queue empties (no route).
+1. Start the queue with a single path: `[["USA"]]`
+2. Dequeue the first path and look at its last country
+3. If that country is the destination, return the path — it's the shortest route
+4. Otherwise, enqueue a new path for each unvisited neighbour
+5. A `visited` Set prevents revisiting countries and avoids infinite loops
+6. If the queue empties without finding the destination, no overland route exists
 
-### Example: USA → PAN
+**Example — USA → PAN:**
 
 ```
-Queue start: [["USA"]]
-
-Level 1 → enqueue: ["USA","CAN"], ["USA","MEX"]
-Level 2 → enqueue: ["USA","MEX","GTM"], ["USA","MEX","BLZ"]
-Level 3 → enqueue paths through GTM and BLZ neighbours …
-…
-Found: ["USA","MEX","GTM","HND","NIC","CRI","PAN"]  ← 6 border crossings
+Start:   [["USA"]]
+Level 1: ["USA","CAN"]  ["USA","MEX"]
+Level 2: ["USA","MEX","GTM"]  ["USA","MEX","BLZ"]
+...
+Found:   ["USA","MEX","GTM","HND","NIC","CRI","PAN"]  (6 crossings)
 ```
-
-Implementation: [src/utils/bfs.js](src/utils/bfs.js)
-Graph data: [src/data/countryGraph.js](src/data/countryGraph.js)
 
 ---
 
-## Project Structure
+## Design Decisions
 
-```
-src/
-├── data/
-│   └── countryGraph.js   # Country border adjacency map + display names
-├── utils/
-│   └── bfs.js            # findRoute() — BFS pathfinding logic
-├── App.js                # Main React component (form, results display)
-├── App.css               # All styles
-└── index.js              # React entry point
-```
+- **React** — matches C.H. Robinson's frontend tech stack
+- **BFS** — guarantees the shortest path through the country graph; simple and correct for this small, unweighted graph
+- **Separation of concerns** — logic is split across three dedicated files (see File Structure below) so the graph data, algorithm, and UI are each independently readable and testable
+- **Azure Static Web Apps + GitHub Actions** — every push to the main branch automatically redeploys the site via CI/CD
 
 ---
 
@@ -92,27 +99,51 @@ src/
 
 | # | Assumption |
 |---|-----------|
-| 1 | **Shortest path** is always preferred when multiple overland routes exist between two countries. |
-| 2 | **USA is always the starting point.** Entering `USA` returns `["USA"]` immediately. |
-| 3 | **CAN is a valid destination.** It returns `["USA", "CAN"]` (one border crossing). |
-| 4 | The graph covers only **contiguous land borders** in North and Central America — no sea routes. |
-| 5 | Country codes are treated **case-insensitively** (`pan`, `Pan`, and `PAN` are all accepted). |
-| 6 | **Empty input** prompts the user to enter a code rather than performing a search. |
-| 7 | The graph is **undirected**: if country A borders B then B also borders A. |
+| 1 | Shortest path is used when multiple overland routes exist |
+| 2 | USA is always the starting point and is included first in the result |
+| 3 | Entering `CAN` returns `["USA", "CAN"]` |
+| 4 | Entering `USA` returns `["USA"]` — the driver is already at the start |
+| 5 | Invalid codes return an error message listing the valid options |
+| 6 | No special case is needed for Alaska (overland route only; ferry routes excluded) |
+| 7 | Country codes are case-insensitive — `pan`, `Pan`, and `PAN` all work |
 
 ---
 
-## Supported Countries
+## File Structure
 
-| Code | Country      |
-|------|--------------|
-| USA  | United States |
-| CAN  | Canada        |
-| MEX  | Mexico        |
-| BLZ  | Belize        |
-| GTM  | Guatemala     |
-| SLV  | El Salvador   |
-| HND  | Honduras      |
-| NIC  | Nicaragua     |
-| CRI  | Costa Rica    |
-| PAN  | Panama        |
+```
+src/
+├── data/
+│   └── countryGraph.js     # COUNTRY_GRAPH adjacency map and COUNTRY_NAMES display labels.
+│                           # Pure data — no logic. Edit here to add or change borders.
+│
+├── utils/
+│   └── bfs.js              # findRoute(code) — BFS pathfinding function.
+│                           # Takes a country code, returns { path, error }.
+│                           # No React imports; can be tested independently.
+│
+├── App.js                  # Main React component. Owns the input field, calls
+│                           # findRoute(), and renders the route list or error message.
+│
+├── App.css                 # All styles for the app (variables, layout, form, results).
+│
+├── index.js                # React entry point — mounts <App /> into the DOM.
+│
+└── App.test.js             # Placeholder test file from Create React App scaffold.
+
+public/
+└── index.html              # HTML shell that Create React App builds into.
+```
+
+---
+
+## Tech Stack
+
+| Layer      | Choice                       |
+|------------|------------------------------|
+| Framework  | React 19 (Create React App)  |
+| Language   | JavaScript (ES2020+)         |
+| Styling    | Plain CSS (custom properties)|
+| Algorithm  | BFS (breadth-first search)   |
+| Hosting    | Azure Static Web Apps        |
+| CI/CD      | GitHub Actions               |
