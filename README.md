@@ -1,70 +1,118 @@
-# Getting Started with Create React App
+# C.H. Robinson Country Route Finder
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React web application that calculates the shortest overland truck route from the **USA** to any country in North and Central America using Breadth-First Search (BFS).
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Tech Stack
 
-### `npm start`
+| Layer      | Choice                          |
+|------------|---------------------------------|
+| Framework  | React 19 (Create React App)     |
+| Language   | JavaScript (ES2020+)            |
+| Styling    | Plain CSS (custom properties)   |
+| Algorithm  | BFS (breadth-first search)      |
+| Testing    | Jest + React Testing Library    |
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## How to Run Locally
 
-### `npm test`
+**Prerequisites:** Node.js 18+ and npm.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+# 1. Clone the repository
+git clone <repo-url>
+cd ch-robinson-country-app
 
-### `npm run build`
+# 2. Install dependencies
+npm install
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# 3. Start the development server
+npm start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Open [http://localhost:3000](http://localhost:3000) in your browser. The page reloads automatically on file changes.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Other scripts
 
-### `npm run eject`
+```bash
+npm test    # Run tests in watch mode
+npm run build  # Production build to /build
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## How BFS Works in This App
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+BFS guarantees the **shortest path** in an unweighted, undirected graph by exploring nodes layer by layer—all countries reachable in 1 crossing before any reachable in 2, and so on.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Step-by-step
 
-## Learn More
+1. **Initialise** the queue with a single path: `[["USA"]]`.
+2. **Dequeue** the first path and inspect its last node (the current country).
+3. **Goal check** — if the current country is the destination, return the path immediately. Because BFS processes nodes in order of distance, the first match is always the shortest route.
+4. **Expand** — for each unvisited neighbour of the current country, create a new path by appending the neighbour and enqueue it.
+5. **Mark visited** — a `Set` prevents revisiting countries, avoiding cycles.
+6. **Repeat** from step 2 until the destination is found or the queue empties (no route).
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Example: USA → PAN
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+Queue start: [["USA"]]
 
-### Code Splitting
+Level 1 → enqueue: ["USA","CAN"], ["USA","MEX"]
+Level 2 → enqueue: ["USA","MEX","GTM"], ["USA","MEX","BLZ"]
+Level 3 → enqueue paths through GTM and BLZ neighbours …
+…
+Found: ["USA","MEX","GTM","HND","NIC","CRI","PAN"]  ← 6 border crossings
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Implementation: [src/utils/bfs.js](src/utils/bfs.js)
+Graph data: [src/data/countryGraph.js](src/data/countryGraph.js)
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Project Structure
 
-### Making a Progressive Web App
+```
+src/
+├── data/
+│   └── countryGraph.js   # Country border adjacency map + display names
+├── utils/
+│   └── bfs.js            # findRoute() — BFS pathfinding logic
+├── App.js                # Main React component (form, results display)
+├── App.css               # All styles
+└── index.js              # React entry point
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Assumptions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+| # | Assumption |
+|---|-----------|
+| 1 | **Shortest path** is always preferred when multiple overland routes exist between two countries. |
+| 2 | **USA is always the starting point.** Entering `USA` returns `["USA"]` immediately. |
+| 3 | **CAN is a valid destination.** It returns `["USA", "CAN"]` (one border crossing). |
+| 4 | The graph covers only **contiguous land borders** in North and Central America — no sea routes. |
+| 5 | Country codes are treated **case-insensitively** (`pan`, `Pan`, and `PAN` are all accepted). |
+| 6 | **Empty input** prompts the user to enter a code rather than performing a search. |
+| 7 | The graph is **undirected**: if country A borders B then B also borders A. |
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Supported Countries
 
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+| Code | Country      |
+|------|--------------|
+| USA  | United States |
+| CAN  | Canada        |
+| MEX  | Mexico        |
+| BLZ  | Belize        |
+| GTM  | Guatemala     |
+| SLV  | El Salvador   |
+| HND  | Honduras      |
+| NIC  | Nicaragua     |
+| CRI  | Costa Rica    |
+| PAN  | Panama        |
