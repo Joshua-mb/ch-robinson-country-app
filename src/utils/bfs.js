@@ -37,7 +37,7 @@ export function findRoute(destinationCode) {
   if (!COUNTRY_GRAPH[destination]) {
     return {
       path: null,
-      error: `"${destinationCode.trim()}" is not a recognised country code. Valid codes: ${Object.keys(COUNTRY_GRAPH).join(', ')}.`,
+      error: `"${destination}" is not a recognised country code. Valid codes: ${Object.keys(COUNTRY_GRAPH).join(', ')}.`,
     };
   }
 
