@@ -2,7 +2,7 @@
 
 An app that finds the shortest route of countries a truck driver must travel through from the USA to a destination country. Built for C.H. Robinson to help determine what customs documentation is needed for North American shipments.
 
-**Live URL:** https://orange-tree-0bc10780f2.azurestaticapps.net
+**Live URL:** https://orange-tree-0bc10780f.2.azurestaticapps.net/
 
 ---
 
@@ -63,7 +63,7 @@ npm run build   # Production build to /build
 
 ## How BFS Works
 
-BFS (Breadth-First Search) guarantees the **shortest path** in an unweighted graph by exploring all nodes at the current distance before moving one step further. The first time the destination is reached it is always via the fewest possible border crossings.
+BFS (Breadth-First Search) guarantees the shortest path in a graph by exploring all nodes at the current distance before moving one step further. The first time the destination is reached it is always via the fewest possible border crossings.
 
 **Steps:**
 
@@ -90,7 +90,6 @@ Found:   ["USA","MEX","GTM","HND","NIC","CRI","PAN"]  (6 crossings)
 
 - **React** — matches C.H. Robinson's frontend tech stack
 - **BFS** — guarantees the shortest path through the country graph; simple and correct for this small, unweighted graph
-- **Separation of concerns** — logic is split across three dedicated files (see File Structure below) so the graph data, algorithm, and UI are each independently readable and testable
 - **Azure Static Web Apps + GitHub Actions** — every push to the main branch automatically redeploys the site via CI/CD
 
 ---
