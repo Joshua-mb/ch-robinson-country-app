@@ -1,12 +1,19 @@
-/**
- * Country border graph for North and Central America.
- *
- * Each key is a three-letter ISO-3166-1 alpha-3 country code.
- * Each value is an array of country codes that share a land border with the key country.
- *
- * This graph is undirected: if A borders B then B also borders A.
- * The graph covers the contiguous overland route from the USA south through Central America.
- */
+// Adjacency list representation of the border graph — basically a dictionary
+// where each key is a country and its value is the list of countries it touches.
+// Using an object here so neighbor lookups are O(1) instead of scanning a flat array.
+//
+// All keys use ISO 3166-1 alpha-3 codes (3-letter codes) because they're
+// unambiguous. "GT" could mean Guatemala or a dozen other things depending
+// on the standard, but "GTM" is always Guatemala.
+//
+// The graph is undirected — if Mexico borders Guatemala then Guatemala
+// borders Mexico. You'll notice each pair appears on both sides of the list.
+// Keeping it symmetric makes the BFS simpler since it never has to think about
+// direction.
+//
+// Scope is intentionally limited to the contiguous overland corridor from
+// Canada down through Panama. Island nations (Cuba, Jamaica, etc.) are excluded
+// because there's no truck route across open water.
 export const COUNTRY_GRAPH = {
   USA: ['CAN', 'MEX'],
   CAN: ['USA'],
@@ -20,10 +27,9 @@ export const COUNTRY_GRAPH = {
   PAN: ['CRI'],
 };
 
-/**
- * Full country names keyed by their three-letter code.
- * Used for display purposes in the results list.
- */
+// Friendly display names keyed by the same 3-letter codes used in the graph.
+// We keep this separate from the graph so the BFS logic never has to care
+// about human-readable strings — that's purely a UI concern.
 export const COUNTRY_NAMES = {
   USA: 'United States',
   CAN: 'Canada',
