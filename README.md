@@ -16,7 +16,7 @@ An app that finds the shortest route of countries a truck driver must travel thr
 
 ## How to Use
 
-1. Visit the [live URL](https://orange-tree-0bc10780f2.azurestaticapps.net)
+1. Visit the [live URL](https://orange-tree-0bc10780f.2.azurestaticapps.net/)
 2. Enter a 3-letter country code into the input field
 3. The route list will display on screen
 
